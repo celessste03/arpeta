@@ -1,0 +1,161 @@
+{% extends "gerente/base_gerente.html" %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Panel de Gestión de Acarreo{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#4361ee',
+                        'secondary': '#3f37c9',
+                        'accent': '#4cc9f0',
+                        'light': '#f8f9fa',
+                        'dark': '#212529',
+                        'success': '#4ade80',
+                        'warning': '#fbbf24',
+                        'danger': '#f87171',
+                        'info': '#60a5fa',
+                    },
+                    fontFamily: {
+                        'poppins': ['Poppins', 'sans-serif'],
+                    },
+                    height: {
+                        'screen-nav': 'calc(100vh - 80px)',
+                    },
+                    boxShadow: {
+                        'neumorphic': '8px 8px 16px #d1d9e6, -8px -8px 16px #ffffff',
+                        'neumorphic-inset': 'inset 4px 4px 8px #d1d9e6, inset -4px -4px 8px #ffffff',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+        }
+        
+        .nav-link {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: currentColor;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 14px 28px rgba(0,0,0,0.1), 0 10px 10px rgba(0,0,0,0.08);
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(67, 97, 238, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0); }
+        }
+    </style>
+</head>
+
+<!-- Contenido principal -->
+<main class="container mx-auto px-4 py-8 h-screen-nav flex flex-col">
+    <div class="text-center mb-10">
+        <h1 class="text-4xl md:text-5xl font-bold text-blue-950">Panel de Control</h1>
+        <p class="text-dark/70 max-w-2xl mx-auto">Gestiona eficientemente tu flota de vehículos y operadores con nuestra plataforma integral</p>
+    </div>
+    
+   <!-- Dentro del grid de botones centrados - modifica estas clases -->
+<div class="flex justify-center mb-12">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 px-4 max-w-5xl"> <!-- Aumenté gap y max-width -->
+        <!-- Botón Operadores - Aumenté el tamaño de esta tarjeta -->
+        <a href="{% url 'operadores_gerente' %}" class="card-hover bg-white rounded-2xl p-8 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col items-center justify-center relative overflow-hidden group h-full min-h-[240px] w-full"> <!-- Aumenté padding y min-height -->
+            <div class="absolute -top-10 -right-10 w-24 h-24 bg-info/10 rounded-full group-hover:scale-150 transition-transform duration-500"></div> <!-- Aumenté el círculo -->
+            <div class="relative z-10">
+                <div class="w-20 h-20 bg-info/20 rounded-full flex items-center justify-center mb-6 text-info"> <!-- Aumenté el icono -->
+                    <i class="fas fa-users text-3xl"></i> <!-- Icono más grande -->
+                </div>
+                <span class="text-2xl font-semibold text-dark block mb-3">Operadores</span> <!-- Texto más grande -->
+                <span class="text-base text-dark/60">Administra tu equipo</span> <!-- Texto más grande -->
+            </div>
+            <span class="absolute top-6 right-6 bg-info text-white rounded-full w-10 h-10 flex items-center justify-center text-base font-bold shadow-sm">{{ operadores_activos }}</span> <!-- Contador más grande -->
+        </a>
+        
+        <!-- Repite los mismos cambios de tamaño para las otras tarjetas (Vehículos y Asignaciones) -->
+        <!-- Botón Vehículos -->
+        <a href="{% url 'vehiculos_gerente' %}" class="card-hover bg-white rounded-2xl p-8 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col items-center justify-center relative overflow-hidden group h-full min-h-[240px] w-full">
+            <div class="absolute -top-10 -right-10 w-24 h-24 bg-success/10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+            <div class="relative z-10">
+                <div class="w-20 h-20 bg-success/20 rounded-full flex items-center justify-center mb-6 text-success">
+                    <i class="fas fa-truck text-3xl"></i>
+                </div>
+                <span class="text-2xl font-semibold text-dark block mb-3">Vehículos</span>
+                <span class="text-base text-dark/60">Controla tu flota</span>
+            </div>
+            <span class="absolute top-6 right-6 bg-success text-white rounded-full w-10 h-10 flex items-center justify-center text-base font-bold shadow-sm">{{ vehiculos_activos }}</span>
+        </a>
+        
+        <!-- Botón Asignaciones -->
+        <a href="{% url 'asignaciones_gerente' %}" class="card-hover bg-white rounded-2xl p-8 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col items-center justify-center relative overflow-hidden group h-full min-h-[240px] w-full">
+            <div class="absolute -top-10 -right-10 w-24 h-24 bg-warning/10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+            <div class="relative z-10">
+                <div class="w-20 h-20 bg-warning/20 rounded-full flex items-center justify-center mb-6 text-warning">
+                    <i class="fas fa-clipboard-check text-3xl"></i>
+                </div>
+                <span class="text-2xl font-semibold text-dark block mb-3">Asignaciones</span>
+                <span class="text-base text-dark/60">Organiza recursos</span>
+            </div>
+            <span class="absolute top-6 right-6 bg-warning text-white rounded-full w-10 h-10 flex items-center justify-center text-base font-bold shadow-sm">{{ asignaciones_activas }}</span>
+        </a>
+    </div>
+</div>
+    <!-- Sección de resumen rápido abajo -->
+    <div class="bg-white rounded-2xl shadow-md p-6 max-w-4xl mx-auto w-full">
+        <h2 class="text-2xl font-semibold text-dark mb-4 flex items-center">
+            <i class="fas fa-tachometer-alt mr-3 text-accent"></i>
+            Resumen Rápido
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-light/50 rounded-xl p-4 border-l-4 border-info">
+                <h3 class="text-sm font-medium text-dark/60 mb-1">Operadores Activos</h3>
+                <p class="text-2xl font-bold text-dark">{{ operadores_activos }} <span class="text-sm font-normal text-success ml-1"><i class="fas fa-arrow-up"></i> 2%</span></p>
+            </div>
+            <div class="bg-light/50 rounded-xl p-4 border-l-4 border-success">
+                <h3 class="text-sm font-medium text-dark/60 mb-1">Vehículos Disponibles</h3>
+                <p class="text-2xl font-bold text-dark">{{ vehiculos_activos }} <span class="text-sm font-normal text-danger ml-1"><i class="fas fa-arrow-down"></i> 1%</span></p>
+            </div>
+            <div class="bg-light/50 rounded-xl p-4 border-l-4 border-warning">
+                <h3 class="text-sm font-medium text-dark/60 mb-1">Asignaciones Pendientes</h3>
+                <p class="text-2xl font-bold text-dark">{{ asignaciones_activas }} <span class="text-sm font-normal text-success ml-1"><i class="fas fa-arrow-up"></i> 5%</span></p>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

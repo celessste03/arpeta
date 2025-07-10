@@ -1,0 +1,469 @@
+{% extends "administracion/base_administracion.html" %}
+{% load filtros_personalizados %}
+
+{% block titulo %}Gestión de Operadores{% endblock %}
+
+{% block titulo_seccion %}
+<div class="relative py-16 overflow-hidden bg-white">
+  <!-- Elementos decorativos sutiles -->
+  <div class="absolute inset-0 opacity-10">
+    <div class="absolute top-0 left-1/4 w-32 h-32 bg-blue-50 rounded-full mix-blend-multiply filter blur-xl"></div>
+  </div>
+  
+  <!-- Contenido principal -->
+  <div class="relative max-w-4xl mx-auto px-6 text-center">
+    <!-- Título principal con toques sutiles de color -->
+    <h1 class="text-5xl md:text-6xl font-light leading-tight text-gray-900 mb-6 tracking-tight" 
+        style="font-family: 'Cormorant Garamond', serif; letter-spacing: -0.5px;">
+      <span class="relative inline-block">
+        <svg class="w-10 h-10 text-indigo-300 absolute -left-12 -top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+        </svg>
+        Gestión de <span class="italic font-medium text-indigo-900">Operadores</span>
+      </span>
+    </h1>
+    
+    <!-- Separador mejorado -->
+    <div class="flex justify-center my-8">
+      <div class="w-24 h-px bg-gradient-to-r from-transparent via-indigo-100 to-transparent"></div>
+      <div class="mx-4 mt-3 text-indigo-200">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+        </svg>
+      </div>
+      <div class="w-24 h-px bg-gradient-to-r from-transparent via-indigo-100 to-transparent"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block contenido %}
+    {% if messages %}
+    <div class="space-y-3 mb-6">
+        {% for message in messages %}
+        <div class="relative p-4 pr-12 rounded-lg shadow-sm border-l-4
+                    {% if message.tags == 'success' %} bg-green-50 border-green-500 text-green-700 {% endif %}
+                    {% if message.tags == 'error' %} bg-red-50 border-red-500 text-red-700 {% endif %}
+                    {% if message.tags == 'warning' %} bg-yellow-50 border-yellow-500 text-yellow-700 {% endif %}
+                    {% if message.tags == 'info' %} bg-blue-50 border-blue-500 text-blue-700 {% endif %}">
+            <div class="flex items-center">
+                <i class="fas 
+                          {% if message.tags == 'success' %} fa-check-circle {% endif %}
+                          {% if message.tags == 'error' %} fa-exclamation-circle {% endif %}
+                          {% if message.tags == 'warning' %} fa-exclamation-triangle {% endif %}
+                          {% if message.tags == 'info' %} fa-info-circle {% endif %} mr-3"></i>
+                <span class="font-medium">{{ message }}</span>
+            </div>
+            <button class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <!-- Header con búsqueda y botón -->
+        <div class="p-5 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="relative w-full md:w-1/3">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                    <input type="text" id="searchOperadorInput" placeholder="Buscar por cédula, nombre..." maxlength="50"
+                           class="block w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 transition-all">
+                </div>
+                <a href="{% url 'crear_operador' %}" 
+                   class="w-full md:w-auto px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center">
+                    <i class="fas fa-plus mr-2"></i>
+                    Nuevo Operador
+                </a>
+            </div>
+        </div>
+
+        <!-- Tarjetas para vista móvil -->
+        <div class="md:hidden divide-y divide-gray-100">
+            {% for operador in operadores %}
+            <div class="p-5 hover:bg-gray-50 transition-colors duration-150">
+                <div class="flex items-start space-x-4">
+                    <div class="flex-shrink-0">
+                        {% if operador.foto_operador %}
+                            <img class="h-12 w-12 rounded-full object-cover border-2 border-white shadow" src="{{ operador.foto_operador.url }}" alt="Foto">
+                        {% else %}
+                            <span class="h-12 w-12 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center shadow">
+                                <i class="fas fa-user text-gray-500"></i>
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-base font-semibold text-gray-900 truncate">{{ operador.nombre }} {{ operador.apellido }}</h3>
+                            <span class="text-xs font-medium px-2 py-0.5 rounded bg-blue-100 text-blue-800">{{ operador.cedula }}</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1 flex items-center">
+                            <i class="fas fa-phone-alt mr-2 text-gray-400"></i>
+                            {{ operador.telefono|default:"Sin teléfono" }}
+                        </p>
+                        <div class="mt-3 flex space-x-2">
+                            <button onclick="mostrarDetalles('{{ operador.cedula }}')" 
+                                    class="text-xs px-3 py-1 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 flex items-center">
+                                <i class="fas fa-eye mr-1 text-blue-500"></i> Ver
+                            </button>
+                            <a href="{% url 'editar_operador' operador.cedula %}" 
+                               class="text-xs px-3 py-1 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 flex items-center">
+                                <i class="fas fa-pen mr-1 text-yellow-500"></i> Editar
+                            </a>
+                            {% asignaciones_por_operador operador as num_asignaciones_op %}
+                            {% if num_asignaciones_op == 0 %}
+                                <button onclick="confirmarEliminacionOperador('{{ operador.cedula }}', '{{ operador.nombre }} {{ operador.apellido }}')" 
+                                        class="text-xs px-3 py-1 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 flex items-center">
+                                    <i class="fas fa-trash mr-1 text-red-500"></i> Eliminar
+                                </button>
+                            {% else %}
+                                <button class="text-xs px-3 py-1 bg-gray-100 border border-gray-200 rounded-lg cursor-not-allowed flex items-center" 
+                                        title="No se puede eliminar (tiene asignaciones)">
+                                    <i class="fas fa-trash mr-1 text-gray-400"></i> Eliminar
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="p-8 text-center">
+                <div class="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <i class="fas fa-user-slash text-gray-400 text-3xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-1">No hay operadores registrados</h3>
+                <p class="text-gray-500">Comienza agregando un nuevo operador</p>
+                <a href="{% url 'crear_operador' %}" class="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg shadow-sm hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-plus mr-2"></i> Agregar Operador
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Tabla para vista desktop -->
+        <div class="hidden md:block overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200" id="tablaOperadores">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Operador</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cédula</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contacto</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for operador in operadores %}
+                    <tr class="hover:bg-gray-50 transition-colors duration-150">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10">
+                                    {% if operador.foto_operador %}
+                                        <img class="h-10 w-10 rounded-full object-cover border-2 border-white shadow" src="{{ operador.foto_operador.url }}" alt="Foto">
+                                    {% else %}
+                                        <span class="h-10 w-10 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center shadow">
+                                            <i class="fas fa-user text-gray-500"></i>
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-semibold text-gray-900">{{ operador.nombre }} {{ operador.apellido }}</div>
+                                    <div class="text-xs text-gray-500">{{ operador.correo|default:"Sin correo" }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900 font-medium">{{ operador.cedula }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">{{ operador.telefono|default:"-" }}</div>
+                            <div class="text-xs text-gray-500">{{ operador.direccion|truncatechars:20|default:"Sin dirección" }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% asignaciones_por_operador operador as num_asignaciones_op %}
+                            <span class="px-2.5 py-0.5 text-xs font-medium rounded-full 
+                                      {% if num_asignaciones_op > 0 %} bg-green-100 text-green-800 {% else %} bg-gray-100 text-gray-800 {% endif %}">
+                                {% if num_asignaciones_op > 0 %}
+                                    {{ num_asignaciones_op }} asignación{{ num_asignaciones_op|pluralize:"es" }}
+                                {% else %}
+                                    Sin asignaciones
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div class="flex justify-end items-center space-x-3">
+                                <button onclick="mostrarDetalles('{{ operador.cedula }}')" 
+                                        class="text-blue-500 hover:text-blue-700 p-1.5 rounded-full hover:bg-blue-50 transition-colors"
+                                        title="Ver detalles">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+
+                                <a href="{% url 'editar_operador' operador.cedula %}" 
+                                   class="text-yellow-500 hover:text-yellow-700 p-1.5 rounded-full hover:bg-yellow-50 transition-colors"
+                                   title="Editar">
+                                    <i class="fas fa-pen"></i>
+                                </a>
+
+                                {% if num_asignaciones_op == 0 %}
+                                    <button onclick="confirmarEliminacionOperador('{{ operador.cedula }}', '{{ operador.nombre }} {{ operador.apellido }}')" 
+                                            class="text-red-500 hover:text-red-700 p-1.5 rounded-full hover:bg-red-50 transition-colors"
+                                            title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                {% else %}
+                                    <span class="text-gray-400 p-1.5 cursor-not-allowed" 
+                                          title="No se puede eliminar (tiene asignaciones)">
+                                        <i class="fas fa-trash"></i>
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center">
+                            <div class="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                                <i class="fas fa-user-slash text-gray-400 text-3xl"></i>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-1">No hay operadores registrados</h3>
+                            <p class="text-gray-500 mb-4">Comienza agregando un nuevo operador</p>
+                            <a href="{% url 'crear_operador' %}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg shadow-sm hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-plus mr-2"></i> Agregar Operador
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        {% if operadores.has_other_pages %}
+        <div class="px-5 py-3 border-t border-gray-200 bg-gray-50">
+            <div class="flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0">
+                <div class="text-sm text-gray-700">
+                    Mostrando <span class="font-medium">{{ operadores.start_index }}</span> a <span class="font-medium">{{ operadores.end_index }}</span> de <span class="font-medium">{{ operadores.paginator.count }}</span> resultados
+                </div>
+                <div class="flex space-x-1">
+                    {% if operadores.has_previous %}
+                        <a href="?page=1" class="px-3 py-1 border rounded-l-lg text-sm font-medium hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-angle-double-left"></i>
+                        </a>
+                        <a href="?page={{ operadores.previous_page_number }}" class="px-3 py-1 border-t border-b border-r text-sm font-medium hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-angle-left"></i>
+                        </a>
+                    {% endif %}
+
+                    {% for num in operadores.paginator.page_range %}
+                        {% if operadores.number == num %}
+                            <span class="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded">{{ num }}</span>
+                        {% elif num > operadores.number|add:'-3' and num < operadores.number|add:'3' %}
+                            <a href="?page={{ num }}" class="px-3 py-1 border text-sm font-medium hover:bg-gray-100 transition-colors">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if operadores.has_next %}
+                        <a href="?page={{ operadores.next_page_number }}" class="px-3 py-1 border-t border-b border-l text-sm font-medium hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-angle-right"></i>
+                        </a>
+                        <a href="?page={{ operadores.paginator.num_pages }}" class="px-3 py-1 border rounded-r-lg text-sm font-medium hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-angle-double-right"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Modal de Detalles -->
+    <div id="modal-detalles" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onclick="cerrarDetalles()"></div>
+            
+            <div class="bg-white rounded-xl shadow-xl transform transition-all w-full max-w-2xl z-10 overflow-hidden">
+                <div class="p-5 border-b flex justify-between items-center bg-gradient-to-r from-blue-50 to-indigo-50">
+                    <h3 class="text-xl font-bold text-gray-800">Detalles del Operador</h3>
+                    <button onclick="cerrarDetalles()" class="text-gray-500 hover:text-gray-800 transition-colors">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div id="detalles-contenido" class="p-6">
+                    <!-- Contenido dinámico se cargará aquí -->
+                </div>
+                
+                <div class="px-6 py-4 bg-gray-50 border-t text-right">
+                    <button type="button" onclick="cerrarDetalles()" 
+                            class="px-5 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg shadow-sm hover:bg-gray-50 transition-colors font-medium">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function mostrarDetalles(cedula) {
+        const modal = document.getElementById('modal-detalles');
+        const contenidoDiv = document.getElementById('detalles-contenido');
+        modal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+        
+        contenidoDiv.innerHTML = `
+            <div class="flex justify-center items-center py-12">
+                <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+        `;
+        
+        fetch(`/administracion/operadores/detalles/${cedula}/`)
+            .then(response => response.json())
+            .then(data => {
+                const fotoHTML = data.foto_operador 
+                    ? `<img src="${data.foto_operador}" alt="Foto" class="h-32 w-32 rounded-full object-cover mx-auto mb-4 border-4 border-white shadow-lg">` 
+                    : `<div class="h-32 w-32 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center mx-auto mb-4 shadow-lg">
+                          <i class="fas fa-user text-gray-500 text-4xl"></i>
+                       </div>`;
+
+                const estadoHTML = data.independiente 
+                    ? `<span class="px-2.5 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-800">Independiente</span>`
+                    : `<span class="px-2.5 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-800">Dependiente</span>`;
+
+                contenidoDiv.innerHTML = `
+                    <div class="text-center mb-6">
+                        ${fotoHTML}
+                        <h3 class="text-2xl font-bold text-gray-900 mt-2">${data.nombre} ${data.apellido}</h3>
+                        <div class="flex justify-center items-center space-x-2 mt-2">
+                            <span class="text-gray-600">${data.cedula}</span>
+                            ${estadoHTML}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="text-sm font-medium text-gray-500 mb-2">INFORMACIÓN DE CONTACTO</h4>
+                            <div class="space-y-3">
+                                <div class="flex items-start">
+                                    <i class="fas fa-phone-alt text-gray-400 mt-1 mr-3"></i>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-500">Teléfono</p>
+                                        <p class="text-gray-900">${data.telefono || 'No disponible'}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <i class="fas fa-envelope text-gray-400 mt-1 mr-3"></i>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-500">Correo electrónico</p>
+                                        <p class="text-gray-900">${data.correo || 'No disponible'}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <i class="fas fa-map-marker-alt text-gray-400 mt-1 mr-3"></i>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-500">Dirección</p>
+                                        <p class="text-gray-900">${data.direccion || 'No disponible'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="text-sm font-medium text-gray-500 mb-2">INFORMACIÓN ADICIONAL</h4>
+                            <div class="space-y-3">
+                                <div class="flex items-start">
+                                    <i class="fas fa-briefcase text-gray-400 mt-1 mr-3"></i>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-500">Tipo de operador</p>
+                                        <p class="text-gray-900">${data.independiente ? 'Independiente' : 'Dependiente'}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <i class="fas fa-tasks text-gray-400 mt-1 mr-3"></i>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-500">Asignaciones activas</p>
+                                        <p class="text-gray-900">${data.num_asignaciones || '0'}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <i class="fas fa-calendar-alt text-gray-400 mt-1 mr-3"></i>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-500">Fecha de registro</p>
+                                        <p class="text-gray-900">${data.fecha_registro || 'No disponible'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            })
+            .catch(error => {
+                console.error('Error al cargar detalles:', error);
+                contenidoDiv.innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                            <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900 mb-1">Error al cargar los detalles</h3>
+                        <p class="text-gray-500">Intente nuevamente más tarde</p>
+                        <button onclick="cerrarDetalles()" class="mt-4 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                            Cerrar
+                        </button>
+                    </div>
+                `;
+            });
+    }
+
+    function cerrarDetalles() {
+        document.getElementById('modal-detalles').classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    }
+
+    function confirmarEliminacionOperador(cedula, nombreCompleto) {
+        Swal.fire({
+            title: 'Confirmar eliminación',
+            html: `¿Está seguro que desea eliminar al operador <strong>${nombreCompleto}</strong>?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            backdrop: 'rgba(0,0,0,0.4)',
+            customClass: {
+                confirmButton: 'px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all',
+                cancelButton: 'px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = `/administracion/operadores/borrar_operador/${cedula}/`;
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchOperadorInput');
+        const tableRows = document.querySelectorAll('#tablaOperadores tbody tr');
+
+        searchInput.addEventListener('keyup', function(event) {
+            const searchTerm = event.target.value.toLowerCase();
+            
+            tableRows.forEach(row => {
+                if (row.cells.length > 1) {
+                    const rowText = row.textContent.toLowerCase();
+                    row.style.display = rowText.includes(searchTerm) ? '' : 'none';
+                }
+            });
+        });
+
+        // Cerrar mensajes flash al hacer clic en la X
+        document.querySelectorAll('[class*="bg-"] [class*="fa-times"]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.closest('[class*="bg-"]').style.display = 'none';
+            });
+        });
+    });
+    </script>
+{% endblock %}

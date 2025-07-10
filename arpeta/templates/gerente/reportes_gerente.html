@@ -1,0 +1,454 @@
+{% extends "gerente/base_gerente.html" %}
+{% load static %}
+
+{% block title %}Reporte Consolidado | Gestión de Acarreo{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+    .report-card {
+        border-left: 4px solid;
+        transition: all 0.3s ease;
+    }
+    .report-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    .watermark {
+        position: absolute;
+        opacity: 0.05;
+        font-size: 72px;
+        transform: rotate(-30deg);
+        pointer-events: none;
+        z-index: 0;
+    }
+    .top-item {
+        transition: all 0.3s ease;
+    }
+    .top-item:hover {
+        background-color: #f8fafc;
+    }
+    @page {
+        size: A4;
+        margin: 1.5cm;
+        @bottom-right {
+            content: "Página " counter(page) " de " counter(pages);
+            font-size: 10pt;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Barra de herramientas -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 bg-white rounded-lg shadow p-4">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Reporte Consolidado de Acarreo</h1>
+            <p class="text-gray-600">Resumen operativo completo</p>
+        </div>
+        <div class="mt-4 md:mt-0">
+            <button onclick="generatePDF()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
+                <i class="fas fa-file-pdf mr-2"></i> Exportar a PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- Loader para PDF -->
+    <div id="pdf-loader" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-lg shadow-xl text-center">
+            <i class="fas fa-spinner fa-spin text-4xl text-blue-600 mb-4"></i>
+            <p class="text-lg font-semibold">Generando PDF...</p>
+        </div>
+    </div>
+
+    <!-- Contenido del reporte -->
+    <div id="report-content" class="bg-white rounded-xl shadow-lg p-8 relative">
+        <!-- Marca de agua -->
+        <div class="watermark text-gray-300 top-1/4 left-1/4">REPORTE</div>
+
+        <!-- Encabezado -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 pb-6 border-b">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">Reporte Consolidado de Acarreo</h1>
+                <p class="text-gray-600">Generado el {{ fecha_generacion }}</p>
+            </div>
+            <div class="mt-4 md:mt-0">
+                <div class="bg-gray-100 px-4 py-2 rounded-lg">
+                    <span class="text-sm text-gray-500 mr-2">Sistema:</span>
+                    <span class="font-medium">Gestión de Flota</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección 1: Resumen General -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-chart-pie text-blue-600 mr-3"></i> Resumen General
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <!-- Operadores -->
+                <div class="report-card rounded-lg p-6 shadow border-l-blue-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500">Total Operadores</p>
+                            <h3 class="text-3xl font-bold text-gray-800 mt-2">{{ total_operadores }}</h3>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-full">
+                            <i class="fas fa-users text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-100 space-y-2">
+                        <p class="text-sm"><span class="text-green-500">{{ operadores_activos }} activos</span></p>
+                        <p class="text-sm"><span class="text-red-500">{{ operadores_inactivos }} inactivos</span></p>
+                        <p class="text-sm"><span class="text-indigo-400">{{ operadores_independientes }} independientes</span></p>
+                        <p class="text-sm"><span class="text-purple-400">{{ operadores_no_independientes }} dependientes</span></p>
+                    </div>
+                </div>
+
+                <!-- Vehículos -->
+                <div class="report-card rounded-lg p-6 shadow border-l-green-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500">Total Vehículos</p>
+                            <h3 class="text-3xl font-bold text-gray-800 mt-2">{{ total_vehiculos }}</h3>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-full">
+                            <i class="fas fa-truck text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-100 space-y-2">
+                        <p class="text-sm"><span class="text-green-500">{{ vehiculos_activos }} operativos</span></p>
+                        <p class="text-sm"><span class="text-red-500">{{ vehiculos_mantenimiento }} en mantenimiento</span></p>
+                        <p class="text-sm"><span class="text-blue-500">{{ porcentaje_disponibilidad }}% disponibilidad</span></p>
+                        <p class="text-sm"><span class="text-gray-600">{{ capacidad_promedio|floatformat:2 }} m³ capacidad avg.</span></p>
+                    </div>
+                </div>
+
+                <!-- Asignaciones -->
+                <div class="report-card rounded-lg p-6 shadow border-l-indigo-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500">Total Asignaciones</p>
+                            <h3 class="text-3xl font-bold text-gray-800 mt-2">{{ total_asignaciones }}</h3>
+                        </div>
+                        <div class="bg-indigo-100 p-3 rounded-full">
+                            <i class="fas fa-clipboard-check text-indigo-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-100 space-y-2">
+                        <p class="text-sm"><span class="text-green-500">{{ asignaciones_activas }} activas</span></p>
+                        <p class="text-sm"><span class="text-red-500">{{ asignaciones_inactivas }} inactivas</span></p>
+                        <p class="text-sm"><span class="text-gray-600">{{ total_material|floatformat:2 }} m³ transportados</span></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección 2: Top Operadores y Vehículos -->
+        <section class="mb-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Top Operadores -->
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                            <i class="fas fa-trophy text-yellow-500 mr-2"></i> Top 5 Operadores
+                        </h3>
+                        <p class="text-sm text-gray-500">Por número de asignaciones</p>
+                    </div>
+                    <div class="divide-y divide-gray-200">
+                        {% for operador in top_operadores %}
+                        <div class="px-6 py-4 top-item flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                <span class="text-blue-600 font-medium">{{ forloop.counter }}</span>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-900">{{ operador.nombre }} {{ operador.apellido }}</p>
+                                <p class="text-sm text-gray-500">{{ operador.cedula }}</p>
+                                <p class="text-xs mt-1">
+                                    <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
+                                        {{ operador.num_asignaciones }} asignaciones
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="px-6 py-4 text-center text-sm text-gray-500">No hay datos de operadores</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Top Vehículos -->
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                            <i class="fas fa-trophy text-yellow-500 mr-2"></i> Top 5 Vehículos
+                        </h3>
+                        <p class="text-sm text-gray-500">Por número de asignaciones</p>
+                    </div>
+                    <div class="divide-y divide-gray-200">
+                        {% for vehiculo in top_vehiculos %}
+                        <div class="px-6 py-4 top-item flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                                <span class="text-green-600 font-medium">{{ forloop.counter }}</span>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-900">{{ vehiculo.placa }}</p>
+                                <p class="text-sm text-gray-500">{{ vehiculo.modelo.marca }} {{ vehiculo.modelo.nombre }}</p>
+                                <p class="text-xs mt-1">
+                                    <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full">
+                                        {{ vehiculo.num_asignaciones }} asignaciones
+                                    </span>
+                                    <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full ml-1">
+                                        {{ vehiculo.capacidad_carga_calculada|floatformat:2 }} m³
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="px-6 py-4 text-center text-sm text-gray-500">No hay datos de vehículos</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección 3: Asignaciones Recientes -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-list-ul text-blue-600 mr-3"></i> Asignaciones Recientes
+            </h2>
+            
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Operador</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehículo</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vueltas</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Material (m³)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for asignacion in asignaciones_recientes %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        {% if asignacion.operador.foto_operador %}
+                                        <img class="h-10 w-10 rounded-full" src="{{ asignacion.operador.foto_operador.url }}" alt="">
+                                        {% else %}
+                                        <img class="h-10 w-10 rounded-full" src="{% static 'img/default-avatar.png' %}" alt="">
+                                        {% endif %}
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">{{ asignacion.operador.nombre }} {{ asignacion.operador.apellido }}</div>
+                                        <div class="text-sm text-gray-500">{{ asignacion.operador.cedula }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ asignacion.vehiculo.placa }}</div>
+                                <div class="text-sm text-gray-500">{{ asignacion.vehiculo.modelo.marca.nombre }} {{ asignacion.vehiculo.modelo.nombre }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ asignacion.fecha_asignacion|date:"d/m/Y" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ asignacion.total_vueltas_calculado }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ asignacion.volumen_transportado|floatformat:2 }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">No hay asignaciones recientes registradas</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Sección 4: Actividad Horaria -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-clock text-blue-600 mr-3"></i> Actividad por Horario
+            </h2>
+            
+            <div class="bg-white p-6 rounded-lg shadow">
+                <canvas id="actividadChart" height="150"></canvas>
+            </div>
+        </section>
+
+        <!-- Sección 5: Observaciones -->
+        <section>
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-comment-alt text-blue-600 mr-3"></i> Observaciones
+            </h2>
+            
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-circle text-yellow-400 mt-1 mr-3"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-yellow-700">
+                            Hay {{ vehiculos_mantenimiento }} vehículos que requieren mantenimiento preventivo.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-blue-50 border-l-4 border-blue-400 p-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-info-circle text-blue-400 mt-1 mr-3"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-blue-700">
+                            La disponibilidad de vehículos es del {{ porcentaje_disponibilidad }}%, 
+                            {% if porcentaje_disponibilidad > 85 %}
+                                superando la meta del 85%.
+                            {% else %}
+                                por debajo de la meta del 85%.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pie del reporte -->
+        <div class="mt-12 pt-6 border-t border-gray-200 text-center text-sm text-gray-500">
+            <p>Reporte generado automáticamente por el sistema de Gestión de Flota</p>
+            <p class="mt-1">Para consultas o aclaraciones, contactar al departamento de Sistemas</p>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Función para generar PDF
+function generatePDF() {
+    const { jsPDF } = window.jspdf;
+    const loader = document.getElementById('pdf-loader');
+    const reportElement = document.getElementById('report-content');
+    
+    // Mostrar loader
+    loader.classList.remove('hidden');
+    
+    // Ocultar elementos que no queremos en el PDF
+    const pdfButton = document.querySelector('button[onclick="generatePDF()"]');
+    pdfButton.style.display = 'none';
+    
+    // Configurar opciones para html2canvas
+    const options = {
+        scale: 2,
+        logging: true,
+        useCORS: true,
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: reportElement.scrollWidth,
+        windowHeight: reportElement.scrollHeight
+    };
+    
+    html2canvas(reportElement, options).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgWidth = pdf.internal.pageSize.getWidth() - 20; // Margen de 10mm cada lado
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        // Calcular cuántas páginas necesitamos
+        let heightLeft = imgHeight;
+        let position = 10; // Margen superior
+        const pageHeight = pdf.internal.pageSize.getHeight() - 20; // Margen inferior
+        
+        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+        
+        // Añadir páginas adicionales si el contenido es muy largo
+        while (heightLeft >= 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+        }
+        
+        // Pie de página
+        const date = new Date();
+        const formattedDate = date.toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        pdf.setFontSize(10);
+        pdf.text(`Generado el: ${formattedDate}`, 14, pdf.internal.pageSize.height - 10);
+        pdf.text('© Sistema de Gestión de Flota', pdf.internal.pageSize.width - 60, pdf.internal.pageSize.height - 10);
+        
+        // Guardar PDF
+        pdf.save(`reporte_flota_${date.getTime()}.pdf`);
+        
+        // Restaurar elementos ocultos
+        pdfButton.style.display = '';
+        loader.classList.add('hidden');
+    }).catch(error => {
+        console.error('Error al generar PDF:', error);
+        loader.classList.add('hidden');
+        pdfButton.style.display = '';
+        alert('Error al generar el PDF. Por favor intente nuevamente.');
+    });
+}
+
+// Gráfico de actividad horaria
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('actividadChart').getContext('2d');
+    const horasLabels = JSON.parse('{{ horas_labels|safe }}');
+    const actividadData = JSON.parse('{{ actividad_horaria|safe }}');
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: horasLabels,
+            datasets: [{
+                label: 'Vueltas registradas',
+                data: actividadData,
+                backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                borderColor: 'rgba(59, 130, 246, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Número de vueltas'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Horario del día'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

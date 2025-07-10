@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema de Gestión de Operadores{% endblock %} | ARPETA</title>
+    <link rel="stylesheet" href="{% static 'fontawesome/css/all.min.css' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            50: '#f0f4ff',
+                            100: '#d9e2ff',
+                            200: '#b3c6ff',
+                            300: '#8daaff',
+                            400: '#678eff',
+                            500: '#4172ff',
+                            600: '#1a56ff',
+                            700: '#0040cc',
+                            800: '#003099',
+                            900: '#002066',
+                        },
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        #sidebar {
+            transition: width 0.3s ease-in-out;
+            background-color: #002366; /* Azul marino */
+        }
+        .nav-text {
+            transition: all 0.2s ease-in-out;
+        }
+        .sidebar-item {
+            transition: all 0.2s ease;
+        }
+        .sidebar-item:hover {
+            transform: scale(1.03);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar-item:hover i {
+            transform: scale(1.1);
+        }
+        .sidebar-item:hover .nav-text {
+            font-size: 1.05rem;
+        }
+        .sidebar-item.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .sidebar-item.active i {
+            color: white;
+        }
+        .sidebar-item.active .nav-text {
+            color: white;
+            font-weight: 500;
+        }
+        .user-initial {
+            background-color: #4172ff;
+        }
+        .sidebar-icon {
+            transition: all 0.2s ease;
+        }
+        .main-content {
+            transition: margin-left 0.3s ease;
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="flex h-screen">
+        <!-- Barra lateral azul marino -->
+        <aside id="sidebar" class="text-white flex flex-col shadow-xl w-64">
+            <div class="p-4 border-b border-navy-800 flex items-center justify-center h-16">
+                <h1 class="text-xl font-bold whitespace-nowrap">
+                    <span class="nav-text">ARPETA</span>
+                </h1>
+            </div>
+
+            <nav class="flex-grow p-2 mt-4">
+                <a href="{% url 'inicio_gerente' %}" class="sidebar-item flex items-center p-3 rounded-lg">
+                    <i class="fas fa-home w-6 text-center text-gray-300 sidebar-icon"></i>
+                    <span class="nav-text ml-3 text-gray-200">Inicio</span>
+                </a>
+                <a href="{% url 'operadores_gerente' %}" class="sidebar-item flex items-center p-3 rounded-lg mt-1">
+                    <i class="fas fa-users w-6 text-center text-gray-300 sidebar-icon"></i>
+                    <span class="nav-text ml-3 text-gray-200">Operadores</span>
+                </a>
+                <a href="{% url 'vehiculos_gerente' %}" class="sidebar-item flex items-center p-3 rounded-lg mt-1">
+                    <i class="fas fa-truck w-6 text-center text-gray-300 sidebar-icon"></i>
+                    <span class="nav-text ml-3 text-gray-200">Vehículos</span>
+                </a>
+                <a href="{% url 'asignaciones_gerente' %}" class="sidebar-item flex items-center p-3 rounded-lg mt-1">
+                    <i class="fas fa-tasks w-6 text-center text-gray-300 sidebar-icon"></i>
+                    <span class="nav-text ml-3 text-gray-200">Asignaciones</span>
+                </a>
+                <a href="{% url 'reportes_gerente' %}" class="sidebar-item flex items-center p-3 rounded-lg mt-1">
+                    <i class="fas fa-chart-bar w-6 text-center text-gray-300 sidebar-icon"></i>
+                    <span class="nav-text ml-3 text-gray-200">Reportes</span>
+                </a>
+            </nav>
+
+            <div class="p-4 border-t border-navy-800">
+                <div class="flex items-center">
+                    <div class="user-initial w-8 h-8 rounded-full flex items-center justify-center font-bold text-white">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-semibold nav-text text-gray-200">{{ user.email }}</p>
+                        <a href="{% url 'logout' %}" class="text-xs text-gray-400 hover:text-white nav-text flex items-center">
+                            <i class="fas fa-sign-out-alt mr-1"></i> Cerrar sesión
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="flex flex-col flex-1">
+            <!-- Contenido principal -->
+            <main class="flex-1 overflow-y-auto bg-gray-50">
+                {% block titulo_seccion %}{% endblock %}
+                
+                <div class="p-6">
+                    {% if messages %}
+                    <div class="space-y-3 mb-6">
+                        {% for message in messages %}
+                        <div class="p-4 text-sm rounded-lg flex items-center
+                                    {% if message.tags == 'success' %} bg-green-100 text-green-800 {% endif %}
+                                    {% if message.tags == 'error' %} bg-red-100 text-red-800 {% endif %}
+                                    {% if message.tags == 'warning' %} bg-yellow-100 text-yellow-800 {% endif %}
+                                    {% if message.tags == 'info' %} bg-blue-100 text-blue-800 {% endif %}"
+                             role="alert">
+                            <i class="fas 
+                                      {% if message.tags == 'success' %} fa-check-circle {% endif %}
+                                      {% if message.tags == 'error' %} fa-exclamation-circle {% endif %}
+                                      {% if message.tags == 'warning' %} fa-exclamation-triangle {% endif %}
+                                      {% if message.tags == 'info' %} fa-info-circle {% endif %} mr-3"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    {% block content %}{% endblock %}
+                </div>
+            </main>
+            
+            <!-- Footer -->
+            <footer class="bg-white border-t border-gray-200">
+                <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+                    <div class="flex flex-col md:flex-row justify-between items-center">
+                        <div class="flex items-center">
+                            <i class="fas fa-truck-moving text-blue-600 text-xl mr-2"></i>
+                            <span class="text-gray-700 font-medium">Sistema de Gestión de Acarreo</span>
+                        </div>
+                        <div class="mt-2 md:mt-0">
+                            <p class="text-gray-500 text-sm">
+                                &copy; {% now "Y" %} Arpeta. Todos los derechos reservados.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    {% block extra_js %}{% endblock %}
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const navTexts = document.querySelectorAll('.nav-text');
+
+            // Resaltar enlace activo
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('aside nav a');
+            
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+
+            // Auto-colapsar en móviles
+            if (window.innerWidth < 768) {
+                sidebar.style.width = '72px';
+                navTexts.forEach(text => {
+                    text.style.opacity = '0';
+                    text.style.visibility = 'hidden';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,256 @@
+{% extends "administracion/base_administracion.html" %}
+
+{% block titulo %}Agregar Operador{% endblock %}
+
+{% block titulo_seccion %}
+<div class="text-center mb-10 pt-6">  <!-- Añadido pt-6 para espacio superior -->
+    <!-- Título principal -->
+    <h1 class="text-5xl font-serif font-normal text-gray-900 mb-4 mt-2">  <!-- Añadido mt-2 -->
+        Agregar Operador
+    </h1>
+    <!-- Línea decorativa -->
+    <div class="w-32 h-px bg-gray-300 mx-auto mb-5"></div>
+    <p class="text-gray-500 text-xl font-light">
+        Complete los datos requeridos para el nuevo operador
+    </p>
+</div>
+{% endblock %}
+
+{% block contenido %}
+<div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+    <div class="p-1 bg-gradient-to-r from-primary-500 to-primary-600"></div>
+    
+    <form enctype="multipart/form-data" method="post" class="p-8">
+        {% csrf_token %}
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {% for campo in formulario %}
+                {% if campo.name != 'foto_operador' %}
+                    <div class="space-y-2 {% if campo.name == 'direccion' %}md:col-span-2{% endif %}">
+                        <label for="{{ campo.id_for_label }}" class="flex items-center text-sm font-medium text-gray-700">
+                            {% if campo.name == 'nombre' %}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            {% elif campo.name == 'apellido' %}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            {% elif campo.name == 'cedula' %}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                            {% elif campo.name == 'correo' %}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                            {% elif campo.name == 'direccion' %}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            {% endif %}
+                            {{ campo.label }}
+                        </label>
+                        
+                        {% if campo.field.widget.input_type == "checkbox" %}
+                            <div class="flex items-center space-x-6 pt-2">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="{{ campo.name }}" value="True" class="h-4 w-4 text-primary-600 border-gray-300 focus:ring-primary-500" {% if campo.value %}checked{% endif %}>
+                                    <span class="ml-2 text-sm text-gray-700">Sí</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="{{ campo.name }}" value="False" class="h-4 w-4 text-primary-600 border-gray-300 focus:ring-primary-500" {% if not campo.value and campo.form.is_bound %}checked{% endif %}>
+                                    <span class="ml-2 text-sm text-gray-700">No</span>
+                                </label>
+                            </div>
+                        {% elif campo.name == 'direccion' %}
+                            <textarea id="{{ campo.id_for_label }}" name="{{ campo.name }}" rows="3" class="block w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500 pl-10">{{ campo.value|default_if_none:'' }}</textarea>
+                        
+                        {% elif campo.name == 'cedula' %}
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                    </svg>
+                                </div>
+                                <input type="text" 
+                                       name="{{ campo.name }}" 
+                                       id="{{ campo.id_for_label }}" 
+                                       value="{{ campo.value|default_if_none:'' }}"
+                                       maxlength="8"
+                                       pattern="[0-9]*"
+                                       oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                       class="block w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500 pl-10">
+                            </div>
+                        {% else %}
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                    {% if campo.name == 'nombre' or campo.name == 'apellido' %}
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                    {% elif campo.name == 'correo' %}
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                        </svg>
+                                    {% endif %}
+                                </div>
+                                <input type="{{ campo.field.widget.input_type }}" 
+                                       name="{{ campo.name }}" 
+                                       id="{{ campo.id_for_label }}" 
+                                       value="{{ campo.value|default_if_none:'' }}"
+                                       maxlength="{% if campo.name == 'correo' %}100{% else %}50{% endif %}"
+                                       class="block w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500 pl-10">
+                            </div>
+                        {% endif %}
+                        
+                        {% if campo.errors %}
+                            <p class="text-sm text-red-600 mt-1 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                {{ campo.errors.as_text }}
+                            </p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+            <div class="md:col-span-2">
+                <label for="{{ formulario.foto_operador.id_for_label }}" class="flex items-center text-sm font-medium text-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    {{ formulario.foto_operador.label }}
+                    {% if formulario.foto_operador.field.required %}<span class="text-red-500 ml-1">*</span>{% endif %}
+                </label>
+                <div class="mt-4 flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
+                    <div class="relative group">
+                        <img id="imagePreview" src="{% if formulario.instance.foto_operador %}{{ formulario.instance.foto_operador.url }}{% else %}https://via.placeholder.com/150?text=Sin+imagen{% endif %}" 
+                             alt="Vista previa" 
+                             class="h-32 w-32 rounded-full object-cover border-4 border-white shadow-md">
+                        <div class="absolute inset-0 rounded-full bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            <span class="text-white text-xs font-medium">Cambiar</span>
+                        </div>
+                    </div>
+                    <div class="flex-1 w-full">
+                        <label for="{{ formulario.foto_operador.id_for_label }}" class="flex flex-col items-center px-4 py-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 cursor-pointer hover:bg-gray-100 transition-colors duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            <p class="text-sm text-gray-600 text-center">
+                                <span class="font-medium text-primary-600">Haz clic para subir</span> o arrastra la imagen
+                            </p>
+                            <p class="text-xs text-gray-500 mt-1">PNG, JPG (Max. 2MB)</p>
+                            <input type="file" name="{{ formulario.foto_operador.name }}" id="{{ formulario.foto_operador.id_for_label }}" accept="image/*" class="hidden">
+                        </label>
+                    </div>
+                </div>
+                {% if formulario.foto_operador.errors %}
+                    <p class="text-sm text-red-600 mt-2 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {{ formulario.foto_operador.errors.as_text }}
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="pt-8 mt-8 border-t border-gray-200">
+            <div class="flex justify-end space-x-4">
+                <a href="{% url 'operadores' %}" class="inline-flex items-center px-6 py-2.5 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                    Cancelar
+                </a>
+                <button type="submit" class="inline-flex items-center px-6 py-2.5 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                    </svg>
+                    Guardar Operador
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const imageUploadInput = document.getElementById('{{ formulario.foto_operador.id_for_label }}');
+    const imagePreview = document.getElementById('imagePreview');
+    const defaultImageSrc = imagePreview.src;
+    const uploadLabel = imageUploadInput.parentElement;
+
+    // Click en el área de subida
+    uploadLabel.addEventListener('click', function(e) {
+        if (e.target.tagName !== 'INPUT') {
+            imageUploadInput.click();
+        }
+    });
+
+    // Drag and drop
+    uploadLabel.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('border-primary-400', 'bg-gray-100');
+    });
+
+    uploadLabel.addEventListener('dragleave', function() {
+        this.classList.remove('border-primary-400', 'bg-gray-100');
+    });
+
+    uploadLabel.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('border-primary-400', 'bg-gray-100');
+        
+        if (e.dataTransfer.files.length) {
+            imageUploadInput.files = e.dataTransfer.files;
+            handleFileUpload(e.dataTransfer.files[0]);
+        }
+    });
+
+    // Cambio de archivo
+    if (imageUploadInput) {
+        imageUploadInput.addEventListener('change', function(event) {
+            if (event.target.files.length) {
+                handleFileUpload(event.target.files[0]);
+            }
+        });
+    }
+
+    function handleFileUpload(file) {
+        const maxFileSize = 2 * 1024 * 1024;
+
+        if (!file.type.startsWith('image/')) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Formato no permitido',
+                text: 'Por favor, sube un archivo de imagen válido (ej. JPG, PNG, GIF).'
+            });
+            imageUploadInput.value = '';
+            imagePreview.src = defaultImageSrc;
+            return;
+        }
+
+        if (file.size > maxFileSize) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Archivo demasiado grande',
+                text: 'La imagen no debe pesar más de 2MB.'
+            });
+            imageUploadInput.value = '';
+            imagePreview.src = defaultImageSrc;
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            imagePreview.src = e.target.result;
+        }
+        reader.readAsDataURL(file);
+    }
+});
+</script>
+
+{% endblock %}

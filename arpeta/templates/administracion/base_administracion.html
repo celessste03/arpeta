@@ -1,0 +1,185 @@
+{% load static %}
+
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block titulo %}{% endblock %} | ARPETA</title>
+    <link rel="stylesheet" href="{% static 'fontawesome/css/all.min.css' %}">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            50: '#f0f4ff',
+                            100: '#d9e2ff',
+                            200: '#b3c6ff',
+                            300: '#8daaff',
+                            400: '#678eff',
+                            500: '#4172ff',
+                            600: '#1a56ff',
+                            700: '#0040cc',
+                            800: '#003099',
+                            900: '#002066',
+                        },
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        #sidebar {
+            transition: width 0.3s ease-in-out;
+            background-color: #002366; /* Azul marino */
+        }
+        .nav-text {
+            transition: all 0.2s ease-in-out;
+        }
+        .sidebar-item {
+            transition: all 0.2s ease;
+        }
+        .sidebar-item:hover {
+            transform: scale(1.03);
+        }
+        .sidebar-item:hover i {
+            transform: scale(1.1);
+        }
+        .sidebar-item:hover .nav-text {
+            font-size: 1.05rem;
+        }
+        .sidebar-item.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .user-initial {
+            background-color: #4172ff;
+        }
+        .sidebar-icon {
+            transition: all 0.2s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="flex h-screen">
+        <!-- Barra lateral azul marino -->
+        <aside id="sidebar" class="text-white flex flex-col shadow-xl">
+            <div class="p-4 border-b border-navy-800 flex items-center justify-center h-16">
+                <h1 class="text-xl font-bold whitespace-nowrap">
+                    <span class="nav-text">ARPETA</span>
+                </h1>
+            </div>
+
+            <nav class="flex-grow p-2 mt-4">
+                <a href="{% url 'inicio_administracion' %}" class="sidebar-item flex items-center p-3 rounded-lg">
+                    <i class="fas fa-home w-6 text-center text-gray-300 sidebar-icon"></i>
+                    <span class="nav-text ml-3 text-gray-200">Inicio</span>
+                </a>
+                <a href="{% url 'operadores' %}" class="sidebar-item flex items-center p-3 rounded-lg mt-1">
+                    <i class="fas fa-users w-6 text-center text-gray-300 sidebar-icon"></i>
+                    <span class="nav-text ml-3 text-gray-200">Operadores</span>
+                </a>
+                <a href="{% url 'vehiculos' %}" class="sidebar-item flex items-center p-3 rounded-lg mt-1">
+                    <i class="fas fa-truck w-6 text-center text-gray-300 sidebar-icon"></i>
+                    <span class="nav-text ml-3 text-gray-200">Vehículos</span>
+                </a>
+                <a href="{% url 'asignaciones' %}" class="sidebar-item flex items-center p-3 rounded-lg mt-1">
+                    <i class="fas fa-tasks w-6 text-center text-gray-300 sidebar-icon"></i>
+                    <span class="nav-text ml-3 text-gray-200">Asignaciones</span>
+                </a>
+            </nav>
+
+            <div class="p-4 border-t border-navy-800">
+                <div class="flex items-center">
+                    <div class="user-initial w-8 h-8 rounded-full flex items-center justify-center font-bold text-white">
+                        {{ user.username|first|upper }}
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-semibold nav-text text-gray-200">{{ user.username }}</p>
+                        <a href="{% url 'logout' %}" class="text-xs text-gray-400 hover:text-white nav-text flex items-center">
+                            <i class="fas fa-sign-out-alt mr-1"></i> Cerrar sesión
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="flex flex-col flex-1">
+            <!-- Contenido principal sin barra superior -->
+            <main class="flex-1 overflow-y-auto bg-gray-50">
+                <!-- AQUÍ HE AÑADIDO EL BLOQUE titulo_seccion QUE FALTABA -->
+                {% block titulo_seccion %}{% endblock %}
+                
+                <div class="p-6">
+                    {% block contenido %}{% endblock %}
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const navTexts = document.querySelectorAll('.nav-text');
+
+            const SIDEBAR_EXPANDED_WIDTH = '250px';
+            const SIDEBAR_COLLAPSED_WIDTH = '72px';
+
+            let isExpanded = localStorage.getItem('sidebarExpanded') !== 'false';
+
+            function applySidebarState() {
+                if (isExpanded) {
+                    sidebar.style.width = SIDEBAR_EXPANDED_WIDTH;
+                    navTexts.forEach(text => {
+                        text.style.opacity = '1';
+                        text.style.visibility = 'visible';
+                    });
+                } else {
+                    sidebar.style.width = SIDEBAR_COLLAPSED_WIDTH;
+                    navTexts.forEach(text => {
+                        text.style.opacity = '0';
+                        text.style.visibility = 'hidden';
+                    });
+                }
+            }
+
+            applySidebarState();
+
+            // Auto-colapsar en móviles
+            if (window.innerWidth < 768) {
+                isExpanded = false;
+                applySidebarState();
+            }
+
+            // Resaltar enlace activo
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('aside nav a');
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                    link.querySelector('i').classList.add('text-white');
+                    link.querySelector('span').classList.add('text-white', 'font-medium');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

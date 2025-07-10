@@ -1,0 +1,257 @@
+{% extends "gerente/base_gerente.html" %}
+
+{% load static %}
+
+{% block title %}Panel de Gerente - Operadores{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+        <div class="mb-4 md:mb-0">
+            <h1 class="text-3xl font-bold text-gray-800">Gestión de Operadores</h1>
+            <p class="text-gray-500">Panel de control y análisis de operadores</p>
+        </div>
+        <div class="flex items-center bg-gray-50 px-4 py-2 rounded-lg">
+            <i class="fas fa-clock text-gray-400 mr-2"></i>
+            <span class="text-sm font-medium">Actualizado: {% now "d/m/Y H:i" %}</span>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Active Operators -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 animate-fade-in">
+            <div class="p-6">
+                <div class="flex items-center">
+                    <div class="flex-grow">
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Operadores Activos</p>
+                        <h3 class="text-3xl font-bold mt-1 text-gray-800">{{ operadores_activos }}</h3>
+                    </div>
+                    <div class="ml-4 p-3 bg-blue-50 text-blue-600 rounded-lg">
+                        <i class="fas fa-user-check text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inactive Operators -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 animate-fade-in animation-delay-100">
+            <div class="p-6">
+                <div class="flex items-center">
+                    <div class="flex-grow">
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Operadores Inactivos</p>
+                        <h3 class="text-3xl font-bold mt-1 text-gray-800">{{ operadores_inactivos }}</h3>
+                    </div>
+                    <div class="ml-4 p-3 bg-red-50 text-red-600 rounded-lg">
+                        <i class="fas fa-user-slash text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Independent -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 animate-fade-in animation-delay-200">
+            <div class="p-6">
+                <div class="flex items-center">
+                    <div class="flex-grow">
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Independientes</p>
+                        <h3 class="text-3xl font-bold mt-1 text-gray-800">{{ operadores_independientes }}</h3>
+                    </div>
+                    <div class="ml-4 p-3 bg-cyan-50 text-cyan-600 rounded-lg">
+                        <i class="fas fa-user-tie text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Non-independent -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 animate-fade-in animation-delay-300">
+            <div class="p-6">
+                <div class="flex items-center">
+                    <div class="flex-grow">
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">No Independientes</p>
+                        <h3 class="text-3xl font-bold mt-1 text-gray-800">{{ operadores_no_independientes }}</h3>
+                    </div>
+                    <div class="ml-4 p-3 bg-amber-50 text-amber-600 rounded-lg">
+                        <i class="fas fa-users text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- State Distribution -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                <h5 class="font-semibold text-lg text-gray-800">Distribución por Estado</h5>
+            </div>
+            <div class="p-6 h-80">
+                {{ grafico_estado|safe }}
+            </div>
+        </div>
+
+        <!-- Type Distribution -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                <h5 class="font-semibold text-lg text-gray-800">Distribución por Tipo</h5>
+            </div>
+            <div class="p-6 h-80">
+                {{ grafico_tipo|safe }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Operators Table -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 mb-8">
+        <div class="px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <h5 class="font-semibold text-lg text-gray-800">Listado de Operadores</h5>
+            
+            <!-- Buscador por cédula -->
+            <form method="GET" action="" class="w-full sm:w-auto">
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                    <input 
+                        type="text" 
+                        name="cedula" 
+                        placeholder="Buscar por cédula..." 
+                        value="{{ request.GET.cedula }}"
+                        class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    >
+                </div>
+            </form>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Operador</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cédula</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teléfono</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Registro</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for operador in operadores %}
+                    <tr class="hover:bg-gray-50 transition-colors animate-fade-in">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
+                                    {{ operador.nombre|first }}{{ operador.apellido|first }}
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">{{ operador.nombre }} {{ operador.apellido }}</div>
+                                    <div class="text-sm text-gray-500">{{ operador.email|default:"Sin email" }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ operador.cedula }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ operador.telefono|default:"-" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if operador.activo %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-50 text-green-700">
+                                Activo
+                            </span>
+                            {% else %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-50 text-red-700">
+                                Inactivo
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if operador.independiente %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-cyan-50 text-cyan-700">
+                                Independiente
+                            </span>
+                            {% else %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-50 text-amber-700">
+                                Dependiente
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ operador.fecha_registro|date:"d/m/Y" }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center">
+                            <div class="flex flex-col items-center justify-center text-gray-400">
+                                <i class="fas fa-inbox text-4xl mb-3"></i>
+                                <h5 class="text-lg font-medium">No hay operadores registrados</h5>
+                                <p class="text-sm">No se encontraron operadores en el sistema</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-out forwards;
+    }
+    
+    .animation-delay-100 {
+        animation-delay: 0.1s;
+    }
+    
+    .animation-delay-200 {
+        animation-delay: 0.2s;
+    }
+    
+    .animation-delay-300 {
+        animation-delay: 0.3s;
+    }
+    
+    table tbody tr {
+        opacity: 0;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Animate table rows on load
+    document.addEventListener('DOMContentLoaded', function() {
+        const rows = document.querySelectorAll('tbody tr');
+        rows.forEach((row, index) => {
+            row.style.animationDelay = `${index * 0.05}s`;
+            row.classList.add('animate-fade-in');
+        });
+        
+        // Submit search form when typing stops
+        const searchInput = document.querySelector('input[name="cedula"]');
+        let searchTimer;
+        
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function() {
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(() => {
+                    this.form.submit();
+                }, 500);
+            });
+        }
+    });
+</script>
+{% endblock %}

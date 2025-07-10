@@ -1,0 +1,90 @@
+{% extends "administracion/base_administracion.html" %}
+
+{% block titulo %}
+    Panel de Control - ARPETA
+{% endblock %}
+
+
+
+{% block contenido %}
+
+<div class="max-w-7xl mx-auto">
+    <!-- Tarjeta de bienvenida simplificada -->
+    <div class="bg-gray-100 rounded-xl shadow-sm overflow-hidden mb-10 p-8 text-center">
+        <h2 class="text-3xl font-bold text-gray-800 mb-3">Sistema de Gestión ARPETA</h2>
+        <p class="text-lg text-gray-600">Administración centralizada de flota vehicular</p>
+    </div>
+
+    <!-- Tarjetas de módulos principales -->
+    <h2 class="text-2xl font-serif font-normal text-gray-800 mb-6 text-center">Módulos Principales</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Tarjeta Operadores -->
+        <a href="{% url 'operadores' %}" class="group bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+            <div class="p-1 bg-gradient-to-r from-primary-500 to-primary-600"></div>
+            <div class="p-6">
+                <div class="flex items-center mb-4">
+                    <div class="p-3 rounded-full bg-primary-50 text-primary-600 mr-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 group-hover:text-primary-600 transition-colors">Operadores</h3>
+                </div>
+                <p class="text-gray-600">Administra el personal operativo y sus perfiles.</p>
+                <div class="mt-4 flex items-center text-primary-600 group-hover:text-primary-700 transition-colors">
+                    <span>Gestionar</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </div>
+            </div>
+        </a>
+
+        <!-- Tarjeta Vehículos -->
+        <a href="{% url 'vehiculos' %}" class="group bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+            <div class="p-1 bg-gradient-to-r from-primary-500 to-primary-600"></div>
+            <div class="p-6">
+                <div class="flex items-center mb-4">
+                    <div class="p-3 rounded-full bg-primary-50 text-primary-600 mr-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 group-hover:text-primary-600 transition-colors">Vehículos</h3>
+                </div>
+                <p class="text-gray-600">Gestiona la flota vehicular y sus características.</p>
+                <div class="mt-4 flex items-center text-primary-600 group-hover:text-primary-700 transition-colors">
+                    <span>Gestionar</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </div>
+            </div>
+        </a>
+
+        <!-- Tarjeta Asignaciones -->
+        <a href="{% url 'asignaciones' %}" class="group bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+            <div class="p-1 bg-gradient-to-r from-primary-500 to-primary-600"></div>
+            <div class="p-6">
+                <div class="flex items-center mb-4">
+                    <div class="p-3 rounded-full bg-primary-50 text-primary-600 mr-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 group-hover:text-primary-600 transition-colors">Asignaciones</h3>
+                </div>
+                <p class="text-gray-600">Controla las asignaciones de vehículos a operadores.</p>
+                <div class="mt-4 flex items-center text-primary-600 group-hover:text-primary-700 transition-colors">
+                    <span>Gestionar</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+{% endblock %}

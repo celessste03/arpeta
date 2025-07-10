@@ -1,0 +1,413 @@
+{% extends "administracion/base_administracion.html" %}
+{% load static %}
+
+{% block titulo %}Gestión de Asignaciones{% endblock %}
+
+{% block titulo_seccion %}
+<div class="relative w-full py-16 overflow-hidden bg-white">
+  <!-- Contenido principal -->
+  <div class="w-full px-6 text-center">
+    <!-- Título principal con icono -->
+    <h1 class="text-5xl md:text-6xl font-light leading-tight text-gray-900 mb-6 tracking-tight" 
+        style="font-family: 'Cormorant Garamond', serif; letter-spacing: -0.5px;">
+      <svg class="w-10 h-10 text-indigo-300 inline-block mr-3 -mt-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+      </svg>
+      Gestión de <span class="italic font-medium text-indigo-900">Asignaciones</span>
+    </h1>
+    
+    <!-- Separador -->
+    <div class="flex justify-center my-8">
+      <div class="w-24 h-px bg-gradient-to-r from-transparent via-indigo-100 to-transparent"></div>
+      <div class="mx-4 mt-3 text-indigo-200">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+        </svg>
+      </div>
+      <div class="w-24 h-px bg-gradient-to-r from-transparent via-indigo-100 to-transparent"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block contenido %}
+{% if messages %}
+<div class="w-full space-y-3 mb-6 px-4">
+    {% for message in messages %}
+    <div class="relative p-4 pr-12 rounded-lg shadow-sm border-l-4 w-full
+                {% if message.tags == 'success' %} bg-green-50 border-green-500 text-green-700 {% endif %}
+                {% if message.tags == 'error' %} bg-red-50 border-red-500 text-red-700 {% endif %}
+                {% if message.tags == 'warning' %} bg-yellow-50 border-yellow-500 text-yellow-700 {% endif %}
+                {% if message.tags == 'info' %} bg-blue-50 border-blue-500 text-blue-700 {% endif %}">
+        <div class="flex items-center">
+            <i class="fas 
+                      {% if message.tags == 'success' %} fa-check-circle {% endif %}
+                      {% if message.tags == 'error' %} fa-exclamation-circle {% endif %}
+                      {% if message.tags == 'warning' %} fa-exclamation-triangle {% endif %}
+                      {% if message.tags == 'info' %} fa-info-circle {% endif %} mr-3"></i>
+            <span class="font-medium">{{ message }}</span>
+        </div>
+        <button class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="w-full">
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden w-full">
+    <!-- Header con búsqueda y botón -->
+    <div class="w-full p-5 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+      <div class="flex flex-col md:flex-row justify-between items-center gap-4 w-full">
+        <div class="relative w-full md:w-1/3">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <i class="fas fa-search text-gray-400"></i>
+          </div>
+          <input type="text" id="searchAsignacionInput" placeholder="Buscar por operador, vehículo..." maxlength="50"
+                 class="block w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 transition-all">
+        </div>
+        <a href="{% url 'crear_asignacion' %}" 
+           class="w-full md:w-auto px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center">
+          <i class="fas fa-plus mr-2"></i>
+          Nueva Asignación
+        </a>
+      </div>
+    </div>
+
+    <!-- Tabla que ocupa todo el ancho -->
+    <div class="w-full overflow-x-auto">
+      <table class="w-full divide-y divide-gray-200" id="tablaAsignaciones">
+        <thead class="bg-gray-50">
+          <tr>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">Operador</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">Vehículo</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">Fecha y Estado</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">Vueltas</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">Total</th>
+            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for asignacion in asignaciones %}
+          <tr class="hover:bg-gray-50 transition-colors duration-150">
+            <td class="px-6 py-4 whitespace-nowrap w-1/5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center shadow">
+                  <i class="fas fa-user text-gray-500"></i>
+                </div>
+                <div class="ml-4">
+                  <div class="text-sm font-semibold text-gray-900">{{ asignacion.operador.nombre }} {{ asignacion.operador.apellido }}</div>
+                  <div class="text-xs text-gray-500">{{ asignacion.operador.cedula }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap w-1/5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center shadow">
+                  <i class="fas fa-truck text-gray-500"></i>
+                </div>
+                <div class="ml-4">
+                  <div class="text-sm font-semibold text-gray-900">{{ asignacion.vehiculo.modelo }}</div>
+                  <div class="text-xs text-gray-500">{{ asignacion.vehiculo.placa }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap w-1/5">
+              <div class="text-sm text-gray-900">{{ asignacion.fecha_formateada }}</div>
+              <div class="mt-1">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                      {% if asignacion.estado_actual %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                  {% if asignacion.estado_actual %}Activa{% else %}Inactiva{% endif %}
+                </span>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 font-medium w-1/5">
+              <span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                {{ asignacion.total_vueltas }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 font-medium w-1/5">
+              <span class="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">
+                {{ asignacion.total_material }} m³
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium w-1/5">
+              <div class="flex justify-end space-x-3 items-center">
+
+                {% if not asignacion.estado and asignacion.razon_inactividad %}
+                <button onclick="mostrarRazon('{{ asignacion.razon_inactividad|escapejs }}')" 
+                        class="text-blue-500 hover:text-blue-700 p-1.5 rounded-full hover:bg-blue-50 transition-colors" 
+                        title="Ver razón de inactividad">
+                  <i class="fas fa-comment-alt"></i>
+                </button>
+                {% endif %}
+                
+                {% with current_date_str=request.COOKIES.current_date|default:"" %}
+                  {% if asignacion.fecha_asignacion|date:"Y-m-d" == current_date_str %}
+                    <button 
+                      class="js-toggle-estado text-gray-500 {% if asignacion.estado %}hover:text-red-600{% else %}hover:text-green-600{% endif %} p-1.5 rounded-full hover:bg-gray-50 transition-colors"
+                      data-asignacion-id="{{ asignacion.id }}"
+                      data-estado-actual="{{ asignacion.estado|yesno:'true,false' }}"
+                      title="{% if asignacion.estado %}Desactivar{% else %}Activar{% endif %} asignación para hoy">
+                      {% if asignacion.estado %}<i class="fas fa-toggle-on fa-lg"></i>{% else %}<i class="fas fa-toggle-off fa-lg"></i>{% endif %}
+                    </button>
+                  {% else %}
+                    <span class="text-gray-400 p-1.5 cursor-not-allowed" title="El estado se gestiona automáticamente por la fecha (pasada).">
+                      {% if asignacion.estado_actual %}<i class="fas fa-toggle-on fa-lg"></i>{% else %}<i class="fas fa-toggle-off fa-lg"></i>{% endif %}
+                    </span>
+                  {% endif %}
+                {% endwith %}
+
+                {% with current_date_str=request.COOKIES.current_date|default:"" %}
+                  {% if asignacion.total_vueltas == 0 and asignacion.fecha_asignacion|date:"Y-m-d" == current_date_str %}
+                    <button onclick="confirmarEliminacion('{{ asignacion.id }}')" 
+                            class="text-red-500 hover:text-red-700 p-1.5 rounded-full hover:bg-red-50 transition-colors" 
+                            title="Eliminar">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  {% else %}
+                    <span class="text-gray-400 p-1.5 cursor-not-allowed" 
+                          title="No se puede eliminar (tiene vueltas registradas o la fecha ya pasó)">
+                      <i class="fas fa-trash"></i>
+                    </span>
+                  {% endif %}
+                {% endwith %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="px-6 py-12 text-center w-full">
+              <div class="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <i class="fas fa-folder-open text-gray-400 text-3xl"></i>
+              </div>
+              <h3 class="text-lg font-medium text-gray-900 mb-1">No hay asignaciones registradas</h3>
+              <p class="text-gray-500 mb-4">Comienza agregando una nueva asignación</p>
+              <a href="{% url 'crear_asignacion' %}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg shadow-sm hover:bg-blue-700 transition-colors">
+                <i class="fas fa-plus mr-2"></i> Agregar Asignación
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación -->
+    {% if asignaciones.has_other_pages %}
+    <div class="w-full px-5 py-3 border-t border-gray-200 bg-gray-50">
+      <div class="flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0 w-full">
+        <div class="text-sm text-gray-700">
+          Mostrando <span class="font-medium">{{ asignaciones.start_index }}</span> a <span class="font-medium">{{ asignaciones.end_index }}</span> de <span class="font-medium">{{ asignaciones.paginator.count }}</span> resultados
+        </div>
+        <div class="flex space-x-1">
+          {% if asignaciones.has_previous %}
+            <a href="?page=1" class="px-3 py-1 border rounded-l-lg text-sm font-medium hover:bg-gray-100 transition-colors">
+              <i class="fas fa-angle-double-left"></i>
+            </a>
+            <a href="?page={{ asignaciones.previous_page_number }}" class="px-3 py-1 border-t border-b border-r text-sm font-medium hover:bg-gray-100 transition-colors">
+              <i class="fas fa-angle-left"></i>
+            </a>
+          {% endif %}
+
+          {% for num in asignaciones.paginator.page_range %}
+            {% if asignaciones.number == num %}
+              <span class="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded">{{ num }}</span>
+            {% elif num > asignaciones.number|add:'-3' and num < asignaciones.number|add:'3' %}
+              <a href="?page={{ num }}" class="px-3 py-1 border text-sm font-medium hover:bg-gray-100 transition-colors">{{ num }}</a>
+            {% endif %}
+          {% endfor %}
+
+          {% if asignaciones.has_next %}
+            <a href="?page={{ asignaciones.next_page_number }}" class="px-3 py-1 border-t border-b border-l text-sm font-medium hover:bg-gray-100 transition-colors">
+              <i class="fas fa-angle-right"></i>
+            </a>
+            <a href="?page={{ asignaciones.paginator.num_pages }}" class="px-3 py-1 border rounded-r-lg text-sm font-medium hover:bg-gray-100 transition-colors">
+              <i class="fas fa-angle-double-right"></i>
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<input type="text" id="qrInput" class="opacity-0 fixed -top-96 -left-96" autofocus>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+<script>
+    function mostrarRazon(razon) {
+        Swal.fire({
+            icon: 'info',
+            title: 'Razón de Inactividad',
+            text: razon,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Entendido'
+        });
+    }
+
+    function gestionarEstadoAsignacion(asignacionId, estadoActual) {
+        const url = `/administracion/asignaciones/cambiar_estado/${asignacionId}/`;
+        const csrfToken = '{{ csrf_token }}';
+
+        if (estadoActual) {
+            Swal.fire({
+                title: 'Desactivar Asignación',
+                input: 'textarea',
+                inputLabel: 'Por favor, indique la razón para desactivar esta asignación',
+                inputPlaceholder: 'Escriba aquí el motivo...',
+                showCancelButton: true,
+                confirmButtonText: 'Desactivar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6b7280',
+                inputValidator: (value) => {
+                    if (!value || value.trim().length === 0) {
+                        return '¡Necesitas escribir una razón para continuar!';
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                        body: JSON.stringify({ razon: result.value })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            Swal.fire('¡Desactivada!', data.message, 'success').then(() => location.reload());
+                        } else {
+                            Swal.fire('Error', data.message, 'error');
+                        }
+                    }).catch(() => Swal.fire('Error de Conexión', 'No se pudo conectar con el servidor.', 'error'));
+                }
+            });
+        } else {
+            Swal.fire({
+                title: '¿Activar Asignación?',
+                text: "La asignación volverá a estar activa para el día de hoy.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, activar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6b7280',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(url, {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': csrfToken }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            Swal.fire('¡Activada!', data.message, 'success').then(() => location.reload());
+                        } else {
+                            Swal.fire('Error', data.message, 'error');
+                        }
+                    }).catch(() => Swal.fire('Error de Conexión', 'No se pudo conectar con el servidor.', 'error'));
+                }
+            });
+        }
+    }
+
+    function confirmarEliminacion(asignacionId) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "¡No podrás revertir esta acción!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = `/administracion/asignaciones/borrar_asignacion/${asignacionId}/`;
+            }
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const searchInput = document.getElementById('searchAsignacionInput');
+        const tableRows = document.querySelectorAll('#tablaAsignaciones tbody tr');
+
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function(event) {
+                const searchTerm = event.target.value.toLowerCase();
+                tableRows.forEach(row => {
+                    if (row.cells.length > 1) { 
+                        const rowText = row.textContent.toLowerCase();
+                        row.style.display = rowText.includes(searchTerm) ? '' : 'none';
+                    }
+                });
+            });
+        }
+
+        const toggleButtons = document.querySelectorAll('.js-toggle-estado');
+        toggleButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const asignacionId = this.dataset.asignacionId;
+                const estadoActual = this.dataset.estadoActual === 'true'; 
+                gestionarEstadoAsignacion(asignacionId, estadoActual);
+            });
+        });
+
+        const qrInput = document.getElementById("qrInput");
+        if (qrInput) {
+            qrInput.focus();
+
+            document.addEventListener('click', function() {
+                const activeElement = document.activeElement;
+                if (activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA' && activeElement.id !== 'qrInput') {
+                    qrInput.focus();
+                }
+            });
+
+            qrInput.addEventListener("change", function () {
+                let placa = qrInput.value.trim();
+                if (placa) {
+                    Swal.fire({
+                        title: 'Procesando vuelta...',
+                        html: 'Por favor espere.',
+                        timerProgressBar: true,
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+
+                    fetch("{% url 'registrar_vuelta' %}", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+                        body: JSON.stringify({ placa: placa })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.message) {
+                            Swal.fire({ icon: 'success', title: '¡Vuelta registrada!', text: data.message, showConfirmButton: false, timer: 2000 })
+                            .then(() => { location.reload(); });
+                        } else if (data.error) {
+                            Swal.fire({ icon: 'error', title: 'Error al Registrar Vuelta', text: data.error });
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error en la solicitud:", error);
+                        Swal.fire('Error de Conexión', 'Ocurrió un error al procesar la vuelta.', 'error');
+                    })
+                    .finally(() => { 
+                        qrInput.value = "";
+                        qrInput.focus();
+                    });
+                }
+            });
+        }
+    });
+</script>
+
+
+{% endblock %}

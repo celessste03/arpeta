@@ -1,0 +1,374 @@
+{% extends "administracion/base_administracion.html" %}
+{% load filtros_personalizados %}
+
+{% block titulo %}Gestión de Vehículos{% endblock %}
+
+{% block titulo_seccion %}
+<div class="relative w-full py-16 overflow-hidden bg-white">
+  <!-- Contenido principal -->
+  <div class="w-full px-6 text-center">
+    <!-- Título principal -->
+    <h1 class="text-5xl md:text-6xl font-light leading-tight text-gray-900 mb-6 tracking-tight" 
+        style="font-family: 'Cormorant Garamond', serif; letter-spacing: -0.5px;">
+      Gestión de <span class="italic font-medium text-indigo-900">Vehículos</span>
+    </h1>
+    
+    <!-- Separador -->
+    <div class="flex justify-center my-8">
+      <div class="w-24 h-px bg-gradient-to-r from-transparent via-indigo-100 to-transparent"></div>
+      <div class="mx-4 mt-3 text-indigo-200">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+        </svg>
+      </div>
+      <div class="w-24 h-px bg-gradient-to-r from-transparent via-indigo-100 to-transparent"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block contenido %}
+{% if messages %}
+<div class="w-full space-y-3 mb-6 px-4">
+    {% for message in messages %}
+    <div class="relative p-4 pr-12 rounded-lg shadow-sm border-l-4 w-full
+                {% if message.tags == 'success' %} bg-green-50 border-green-500 text-green-700 {% endif %}
+                {% if message.tags == 'error' %} bg-red-50 border-red-500 text-red-700 {% endif %}
+                {% if message.tags == 'warning' %} bg-yellow-50 border-yellow-500 text-yellow-700 {% endif %}
+                {% if message.tags == 'info' %} bg-blue-50 border-blue-500 text-blue-700 {% endif %}">
+        <div class="flex items-center">
+            <i class="fas 
+                      {% if message.tags == 'success' %} fa-check-circle {% endif %}
+                      {% if message.tags == 'error' %} fa-exclamation-circle {% endif %}
+                      {% if message.tags == 'warning' %} fa-exclamation-triangle {% endif %}
+                      {% if message.tags == 'info' %} fa-info-circle {% endif %} mr-3"></i>
+            <span class="font-medium">{{ message }}</span>
+        </div>
+        <button class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="w-full">
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden w-full">
+    <!-- Header con búsqueda y botón -->
+    <div class="w-full p-5 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+      <div class="flex flex-col md:flex-row justify-between items-center gap-4 w-full">
+        <div class="relative w-full md:w-1/3">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <i class="fas fa-search text-gray-400"></i>
+          </div>
+          <input type="text" id="searchVehiculoInput" placeholder="Buscar por placa, marca..." maxlength="25"
+                 class="block w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 transition-all">
+        </div>
+        <a href="{% url 'crear_vehiculo' %}" 
+           class="w-full md:w-auto px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center">
+          <i class="fas fa-plus mr-2"></i>
+          Nuevo Vehículo
+        </a>
+      </div>
+    </div>
+
+    <!-- Tabla que ocupa todo el ancho -->
+    <div class="w-full overflow-x-auto">
+      <table class="w-full divide-y divide-gray-200" id="tablaVehiculos">
+        <thead class="bg-gray-50">
+          <tr>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Placa</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/6">Marca / Modelo</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Capacidad</th>
+            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Foto</th>
+            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">QR</th>
+            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for vehiculo in vehiculos %}
+          <tr class="hover:bg-gray-50 transition-colors duration-150">
+            <td class="px-6 py-4 whitespace-nowrap w-1/6">
+              <div class="text-sm font-semibold text-gray-900">{{ vehiculo.placa }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap w-2/6">
+              <div class="text-sm text-gray-900 font-medium">{{ vehiculo.modelo.marca.nombre }}</div>
+              <div class="text-xs text-gray-500">{{ vehiculo.modelo.nombre }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap w-1/6">
+              <span class="px-2.5 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                {{ vehiculo.capacidad_carga|formato_decimal }} m³
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-center w-1/6">
+              {% if vehiculo.foto_vehiculo %}
+                <a href="{{ vehiculo.foto_vehiculo.url }}" target="_blank" class="inline-block">
+                  <img src="{{ vehiculo.foto_vehiculo.url }}" alt="Foto" class="h-12 w-12 object-cover rounded-md border-2 border-white shadow">
+                </a>
+              {% else %}
+                <span class="text-xs text-gray-400">N/A</span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-center w-1/6">
+              {% if vehiculo.codigo_qr %}
+                <a href="{{ vehiculo.codigo_qr.url }}" target="_blank" class="inline-block">
+                  <img src="{{ vehiculo.codigo_qr.url }}" alt="QR" class="h-12 w-12 object-cover rounded-md border-2 border-white shadow">
+                </a>
+              {% else %}
+                <span class="text-xs text-gray-400">N/A</span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium w-1/6">
+              <div class="flex justify-end items-center space-x-3">
+                {% if vehiculo.codigo_qr %}
+                  <a href="{% url 'descargar_qr' vehiculo.placa %}" 
+                     class="text-blue-500 hover:text-blue-700 p-1.5 rounded-full hover:bg-blue-50 transition-colors"
+                     title="Descargar QR">
+                    <i class="fas fa-download"></i>
+                  </a>
+                {% endif %}
+                
+                <button onclick="mostrarModalCorreo('{{ vehiculo.placa }}')" 
+                        class="text-green-500 hover:text-green-700 p-1.5 rounded-full hover:bg-green-50 transition-colors"
+                        title="Enviar QR por correo">
+                  <i class="fas fa-envelope"></i>
+                </button>
+
+                {% asignaciones_por_vehiculo vehiculo as num_asignaciones %}
+                {% if num_asignaciones == 0 %}
+                  <a href="{% url 'editar_vehiculo' vehiculo.placa %}" 
+                     class="text-yellow-500 hover:text-yellow-700 p-1.5 rounded-full hover:bg-yellow-50 transition-colors"
+                     title="Editar">
+                    <i class="fas fa-pen"></i>
+                  </a>
+                  <button onclick="confirmarEliminacionVehiculo('{{ vehiculo.placa }}')" 
+                          class="text-red-500 hover:text-red-700 p-1.5 rounded-full hover:bg-red-50 transition-colors"
+                          title="Eliminar">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                {% else %}
+                  <span class="text-gray-400 p-1.5 cursor-not-allowed" 
+                        title="No se puede editar (tiene asignaciones)">
+                    <i class="fas fa-pen"></i>
+                  </span>
+                  <span class="text-gray-400 p-1.5 cursor-not-allowed" 
+                        title="No se puede eliminar (tiene asignaciones)">
+                    <i class="fas fa-trash"></i>
+                  </span>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="px-6 py-12 text-center w-full">
+              <div class="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <i class="fas fa-truck text-gray-400 text-3xl"></i>
+              </div>
+              <h3 class="text-lg font-medium text-gray-900 mb-1">No hay vehículos registrados</h3>
+              <p class="text-gray-500 mb-4">Comienza agregando un nuevo vehículo</p>
+              <a href="{% url 'crear_vehiculo' %}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg shadow-sm hover:bg-blue-700 transition-colors">
+                <i class="fas fa-plus mr-2"></i> Agregar Vehículo
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación -->
+    {% if vehiculos.has_other_pages %}
+    <div class="w-full px-5 py-3 border-t border-gray-200 bg-gray-50">
+      <div class="flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0 w-full">
+        <div class="text-sm text-gray-700">
+          Mostrando <span class="font-medium">{{ vehiculos.start_index }}</span> a <span class="font-medium">{{ vehiculos.end_index }}</span> de <span class="font-medium">{{ vehiculos.paginator.count }}</span> resultados
+        </div>
+        <div class="flex space-x-1">
+          {% if vehiculos.has_previous %}
+            <a href="?page=1" class="px-3 py-1 border rounded-l-lg text-sm font-medium hover:bg-gray-100 transition-colors">
+              <i class="fas fa-angle-double-left"></i>
+            </a>
+            <a href="?page={{ vehiculos.previous_page_number }}" class="px-3 py-1 border-t border-b border-r text-sm font-medium hover:bg-gray-100 transition-colors">
+              <i class="fas fa-angle-left"></i>
+            </a>
+          {% endif %}
+
+          {% for num in vehiculos.paginator.page_range %}
+            {% if vehiculos.number == num %}
+              <span class="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded">{{ num }}</span>
+            {% elif num > vehiculos.number|add:'-3' and num < vehiculos.number|add:'3' %}
+              <a href="?page={{ num }}" class="px-3 py-1 border text-sm font-medium hover:bg-gray-100 transition-colors">{{ num }}</a>
+            {% endif %}
+          {% endfor %}
+
+          {% if vehiculos.has_next %}
+            <a href="?page={{ vehiculos.next_page_number }}" class="px-3 py-1 border-t border-b border-l text-sm font-medium hover:bg-gray-100 transition-colors">
+              <i class="fas fa-angle-right"></i>
+            </a>
+            <a href="?page={{ vehiculos.paginator.num_pages }}" class="px-3 py-1 border rounded-r-lg text-sm font-medium hover:bg-gray-100 transition-colors">
+              <i class="fas fa-angle-double-right"></i>
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Modal de Envío de Correo (también a pantalla completa) -->
+<div id="modalCorreo" class="fixed inset-0 z-50 hidden overflow-y-auto w-full">
+  <div class="flex items-center justify-center min-h-screen p-4 w-full">
+    <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity w-full" onclick="cerrarModalCorreo()"></div>
+    
+    <div class="bg-white rounded-xl shadow-xl transform transition-all w-full max-w-4xl z-10 overflow-hidden">
+      <div class="p-5 border-b flex justify-between items-center bg-gradient-to-r from-blue-50 to-indigo-50 w-full">
+        <h3 class="text-lg font-bold text-gray-800 w-full">Enviar QR del vehículo <span id="placaModalCorreo" class="font-bold text-indigo-600"></span></h3>
+        <button onclick="cerrarModalCorreo()" class="text-gray-500 hover:text-gray-800 transition-colors">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="p-6 w-full">
+        <form id="formCorreo" method="POST" onsubmit="event.preventDefault(); enviarCorreo();" class="w-full">
+          {% csrf_token %}
+          <div class="mb-4 w-full">
+            <label for="correo" class="block text-sm font-medium text-gray-700 mb-1 w-full">Correo del destinatario</label>
+            <input type="email" id="correo" name="correo" required 
+                   class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+          </div>
+        </form>
+      </div>
+      
+      <div class="px-6 py-4 bg-gray-50 border-t flex justify-end space-x-3 w-full">
+        <button type="button" onclick="cerrarModalCorreo()" 
+                class="px-5 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg shadow-sm hover:bg-gray-50 transition-colors font-medium">
+          Cancelar
+        </button>
+        <button type="button" onclick="enviarCorreo()" 
+                class="px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg shadow-sm hover:from-blue-700 hover:to-indigo-700 transition-colors font-medium">
+          Enviar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Resto del código JavaScript permanece igual -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+let placaActualParaCorreo = '';
+    
+    function mostrarModalCorreo(placa) {
+        placaActualParaCorreo = placa;
+        document.getElementById('placaModalCorreo').textContent = placa;
+        document.getElementById('modalCorreo').classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+        document.getElementById('correo').value = '';
+        document.getElementById('correo').focus();
+    }
+    
+    function cerrarModalCorreo() {
+        document.getElementById('modalCorreo').classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    }
+    
+    async function enviarCorreo() {
+        const correoInput = document.getElementById('correo');
+        const correo = correoInput.value;
+        const form = document.getElementById('formCorreo');
+        
+        if (!correo || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
+            Swal.fire('Entrada Inválida', 'Por favor ingrese un correo electrónico válido.', 'warning');
+            return;
+        }
+        
+        Swal.fire({
+            title: 'Enviando correo...',
+            text: 'Por favor espere.',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        const formData = new FormData();
+        formData.append('correo', correo);
+        formData.append('csrfmiddlewaretoken', form.elements.csrfmiddlewaretoken.value);
+
+        try {
+            const response = await fetch(`/administracion/enviar_qr_correo/${placaActualParaCorreo}`, {
+                method: 'POST',
+                body: formData,
+            });
+            
+            const data = await response.json(); 
+
+            if (response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Enviado!',
+                    text: data.message,
+                    showConfirmButton: false,
+                    timer: 2500
+                });
+                cerrarModalCorreo();
+            } else {
+                Swal.fire('Error', data.message || `Ocurrió un error (Código: ${response.status})`, 'error');
+            }
+        } catch (error) {
+            console.error('Error en fetch:', error);
+            Swal.fire('Error de Red', 'No se pudo conectar con el servidor para enviar el correo.', 'error');
+        }
+    }
+
+    function mostrarErrorAsignacionesVehiculo(accion, placa) {
+        let accionTexto = accion === 'editar' ? 'editar' : 'eliminar';
+        Swal.fire({
+            icon: 'error',
+            title: 'Acción no Permitida',
+            text: `El vehículo con placa ${placa} no se puede ${accionTexto} porque tiene asignaciones registradas.`,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Entendido'
+        });
+    }
+
+    function confirmarEliminacionVehiculo(placaVehiculo) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            html: `¡No podrás revertir la eliminación del vehículo con placa <strong>${placaVehiculo}</strong>!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = `/administracion/vehiculos/borrar_vehiculo/${placaVehiculo}/`;
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchVehiculoInput');
+        const tableRows = document.querySelectorAll('#tablaVehiculos tbody tr');
+
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function(event) {
+                const searchTerm = event.target.value.toLowerCase();
+                
+                tableRows.forEach(row => {
+                    if (row.cells.length > 1) {
+                        const rowText = row.textContent.toLowerCase();
+                        if (rowText.includes(searchTerm)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    }
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,12 @@
+# Archivos de usuario, nunca deben estar en el repositorio
+/media/
+
+# Carpeta donde collectstatic guarda los archivos para producción.
+/staticfiles/
+
+# Entorno virtual
+/venv/
+
+# Archivos de caché de Python
+__pycache__/
+*.pyc
