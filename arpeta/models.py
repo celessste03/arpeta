@@ -35,12 +35,6 @@ class Operador(models.Model):
     def activo_texto(self):
         return "Activo" if self.activo else "Inactivo"
 
-    # Método para eliminar un operador y su foto asociada
-    def delete(self, *args, **kwargs):
-        if self.foto_operador and os.path.isfile(self.foto_operador.path):
-            os.remove(self.foto_operador.path)
-        super().delete(*args, **kwargs)
-
     # Representación en cadena del modelo Operador
     def __str__(self):
         return f"Cédula: {self.cedula} - Operador: {self.nombre} {self.apellido}"
@@ -113,10 +107,14 @@ class Vehiculo(models.Model):
             return float(self.alto) * float(self.ancho) * float(self.largo)
         return 0.00
 
-    # Método para guardar el vehículo, generando un código QR encriptado si no existe
+# Método para guardar el vehículo, generando un código QR encriptado si no existe
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs) # REVISAR: Creo que tengo que eliminar esta línea
-        if not self.codigo_qr and self.placa:
+        # Primero, guarda el objeto principal para asegurar que self.placa exista
+        super().save(*args, **kwargs)
+
+        # Comprueba si el campo del código QR está vacío
+        if not self.codigo_qr.name:
+            # Intenta obtener la clave de encriptación desde la configuración
             try:
                 key = settings.FERNET_KEY
             except AttributeError:
@@ -124,24 +122,23 @@ class Vehiculo(models.Model):
                     "La clave FERNET_KEY no está configurada en settings.py. "
                     "No se puede generar el código QR encriptado."
                 )
+            
+            # --- Lógica para generar y encriptar el QR ---
             f = Fernet(key)
             placa_original_bytes = self.placa.encode('utf-8')
             placa_encriptada_bytes = f.encrypt(placa_original_bytes)
             contenido_qr_encriptado_str = placa_encriptada_bytes.decode('utf-8')
+            
+            # Crea la imagen del QR en memoria
             imagen_qr_obj = qrcode.make(contenido_qr_encriptado_str)
             buffer = BytesIO()
             imagen_qr_obj.save(buffer, format="PNG")
+            
+            # Crea un nombre de archivo único
             nombre_archivo = f"qr_vehiculo_{self.placa}.png"
-            self.codigo_qr.save(nombre_archivo, ContentFile(buffer.getvalue()), save=False)
-            super().save(*args, **kwargs)
-
-    # Método para eliminar un vehículo y sus archivos asociados (foto y código QR)
-    def delete(self, *args, **kwargs):
-        if self.foto_vehiculo and os.path.isfile(self.foto_vehiculo.path):
-            os.remove(self.foto_vehiculo.path)
-        if self.codigo_qr and os.path.isfile(self.codigo_qr.path):
-            os.remove(self.codigo_qr.path)
-        super().delete(*args, **kwargs)
+            
+            # Guarda el archivo del QR en el campo 'codigo_qr' y actualiza el modelo en la base de datos
+            self.codigo_qr.save(nombre_archivo, ContentFile(buffer.getvalue()), save=True)
 
     # Representación en cadena del modelo Vehiculo
     def __str__(self):
