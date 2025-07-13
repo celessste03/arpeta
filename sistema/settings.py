@@ -9,8 +9,8 @@ from pathlib import Path
 # --- Configuración Base ---
 # --------------------------------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_URL = '/media/'
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+CLOUDINARY_URL = os.environ.get('CLOUDINARY_URL')
 TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
 
 
@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'cloudinary_storage',
+    'cloudinary',
     'auditlog',
     'django.contrib.sites',
     'arpeta',
