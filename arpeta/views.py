@@ -1108,12 +1108,20 @@ def reportes_gerente(request):
     }
 
     return render(request, 'gerente/reportes_gerente.html', context)
-# Vista para ver todos los detalles de un operador
+
+
+# Vista para ver todos los detalles de un operador (CORREGIDA)
 @login_required
 @user_passes_test(is_administracion)
 def detalles_operador(request, cedula):
     try:
         operador = Operador.objects.get(cedula=cedula)
+        
+        # --- LA CORRECCIÓN ESTÁ AQUÍ ---
+        foto_url_absoluta = None
+        if operador.foto_operador:
+            # Construimos la URL completa usando el contexto de la petición
+            foto_url_absoluta = request.build_absolute_uri(operador.foto_operador.url)
         
         data = {
             'cedula': operador.cedula,
@@ -1123,7 +1131,8 @@ def detalles_operador(request, cedula):
             'correo': operador.correo or 'No especificado',
             'direccion': operador.direccion or 'No especificada',
             'independiente_texto': 'Sí' if operador.independiente else 'No',
-            'foto_operador': operador.foto_operador.url if operador.foto_operador else None,
+            # Usamos la nueva variable con la URL completa
+            'foto_operador': foto_url_absoluta,
         }
         return JsonResponse(data)
 
